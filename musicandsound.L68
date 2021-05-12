@@ -1,0 +1,89 @@
+00000000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 10/8/2020 4:26:48 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      : 3
+00000000                             3  * Written by : Tony Giumenta 
+00000000                             4  * Date       : 10/08/20
+00000000                             5  * Description: Sound Handler
+00000000                             6  *-----------------------------------------------------------
+00000000                             7  *All Registers*
+00000000                             8  AllRegisters                    REG     D0-D7/A0-A6
+00000000                             9  
+00000000  =00000001                 10  LoopingValue                    EQU     1      ; Used in Trap 76 for looping a sound
+00000000                            11  
+00000000  =00000000                 12  MainPosition                    EQU     0
+00000000  =00000001                 13  PaddleWallSoundPosition         EQU     1
+00000000  =00000002                 14  ExplodeBrickSoundPosition       EQU     2
+00000000                            15  
+00000000                            16  LoadSounds
+Line 17 ERROR: Undefined symbol
+00000000  43F9 004DBD16             17      lea     PaddleWallSound,a1
+Line 18 ERROR: Undefined symbol
+00000006  203C 004DBD16             18      move.l  #LoadWAVDirectTrap,d0
+0000000C  123C 0001                 19      move.b  #PaddleWallSoundPosition,d1
+00000010  4E4F                      20      trap    #15
+00000012                            21      
+Line 22 ERROR: Undefined symbol
+00000012  43F9 004DBD16             22      lea     ExplodeBrickSound,a1
+00000018  123C 0002                 23      move.b  #ExplodeBrickSoundPosition,d1
+0000001C  4E4F                      24      trap    #15
+0000001E                            25      
+Line 26 ERROR: Undefined symbol
+0000001E  43F9 004DBD16             26      lea     MainMusic,a1
+Line 27 ERROR: Undefined symbol
+00000024  203C 004DBD16             27      move.l  #LoadWAVNonDirectTrap,d0   ; Use Standard Controller for music        
+0000002A  123C 0000                 28      move.b  #MainPosition,d1
+0000002E  4E4F                      29      trap    #15
+00000030                            30  PlayMusic
+Line 31 ERROR: Undefined symbol
+00000030  203C 004DBD16             31      move.l  #StandardPlayerTrap,d0
+00000036  7200                      32      move.l  #MainPosition,d1
+00000038  7401                      33      move.l  #LoopingValue,d2
+0000003A  4E4F                      34      trap    #15
+0000003C  4E75                      35      rts
+0000003E                            36      
+0000003E                            37  PlayPaddleWall
+0000003E  48E7 FFFE                 38      movem.l AllRegisters,-(sp)          ; Save all original variables onto the stack
+00000042                            39                                          ; This allows the use of d0-d7 as temporary spaces now
+Line 40 ERROR: Undefined symbol
+00000042  43F9 004DBD16             40      lea     PaddleWallSound,a1
+00000048  123C 0001                 41      move.b  #PaddleWallSoundPosition,d1
+Line 42 ERROR: Undefined symbol
+0000004C  203C 004DBD16             42      move.l  #PlayWAVDirectTrap,d0
+00000052  4E4F                      43      trap    #15    
+00000054                            44      
+00000054  4CDF 7FFF                 45      movem.l (sp)+,AllRegisters          ; Reset original registers and fix stack pointer
+00000058  4E75                      46      rts
+0000005A                            47  
+0000005A                            48  PlayBrickExplode
+0000005A  48E7 FFFE                 49      movem.l AllRegisters,-(sp)          ; Save all original variables onto the stack
+0000005E                            50                                          ; This allows the use of d0-d7 as temporary spaces now
+Line 51 ERROR: Undefined symbol
+0000005E  43F9 004DBD16             51      lea     ExplodeBrickSound,a1
+00000064  123C 0002                 52      move.b  #ExplodeBrickSoundPosition,d1
+Line 53 ERROR: Undefined symbol
+00000068  203C 004DBD16             53      move.l  #PlayWAVDirectTrap,d0
+0000006E  4E4F                      54      trap    #15    
+00000070                            55      
+00000070  4CDF 7FFF                 56      movem.l (sp)+,AllRegisters          ; Reset original registers and fix stack pointer
+00000074  4E75                      57      rts
+Line 58 WARNING: END directive missing, starting address not set
+
+10 errors detected
+1 warning generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ALLREGISTERS        7FFF
+EXPLODEBRICKSOUNDPOSITION  2
+LOADSOUNDS          0
+LOOPINGVALUE        1
+MAINPOSITION        0
+PADDLEWALLSOUNDPOSITION  1
+PLAYBRICKEXPLODE    5A
+PLAYMUSIC           30
+PLAYPADDLEWALL      3E

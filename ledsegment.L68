@@ -1,0 +1,165 @@
+00000000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 1/14/2021 8:38:42 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      : 3
+00000000                             3  * Written by : Tony Giumenta
+00000000                             4  * Date       : 10/07/20
+00000000                             5  * Description: LED 7-Segment Display
+00000000                             6  *-----------------------------------------------------------
+00000000                             7  AllRegisters            REG     D0-D7/A0-A6  
+00000000  =00000030                  8  LengthOfTables          EQU     48          ; The amount of words in the segment tables
+00000000                             9                                              ; Used as an offset for either lives (not used) or score (used)
+00000000                            10                                          
+00000000= 00000000                  11  OriginOffset            dc.l    0           ; The value added to the x coordinates for offsetting either the score or lives
+00000004                            12                                              ; 0 will be the value for the lives, and LEDScoreOffset for the score
+00000004  =00000204                 13  LEDScoreOffset          EQU     516         ; Value added to x position of the score digits
+00000004  =00000010                 14  DigitOffset             EQU     16          ; Subtract this value to put the current digit to the left of the previous
+00000004                            15  
+00000004  =0000000A                 16  DivideAmount            EQU     10          ; Divide out 10 to get digits and their remainders
+00000004  =00FFFFFF                 17  WhiteColor              EQU     $00FFFFFF   ; Hex representation of the color white for pen color
+00000004                            18  
+00000004                            19  *X values*
+00000004  =00000048                 20  LEDEdgeLeft             EQU     72          ; X-value on the left-side of the screen
+00000004  =00000052                 21  LEDEdgeRight            EQU     82          ; X-value on the right-side of the screen
+00000004                            22  *Y values*
+00000004  =000002D2                 23  LEDTopLeft              EQU     722
+00000004  =000002DC                 24  LEDMidLeft              EQU     732
+00000004  =000002E6                 25  LEDBotLeft              EQU     742
+00000004  =000002D2                 26  LEDTopRight             EQU     722
+00000004  =000002DC                 27  LEDMidRight             EQU     732
+00000004  =000002E6                 28  LEDBotRight             EQU     742 
+00000004                            29  
+00000004  =00000002                 30  NextWordOffset          EQU     2
+00000004  =00000030                 31  StartingSegOffset       EQU     48                  ; Starting offset in the table to get the desired segment set
+00000004= 00000030                  32  DynamicSegmentOffset    dc.l    StartingSegOffset   ; Dynamic offset in the table tracking current segment offset
+00000008  =00000008                 33  OffsetSubtract          EQU     8                   ; Amount of words to subtract from segment offset to get next segment
+00000008                            34  
+00000008                            35  LEDSegmentDisplay
+00000008  43F8 0000                 36      lea     OriginOffset,a1
+0000000C                            37  OuterLoop
+0000000C  80FC 000A                 38      divu    #DivideAmount,d0        ; Divide out the first
+00000010  4840                      39      swap    d0                      ; Got first digit into 1st word of d0
+00000012  3E00                      40      move.w  d0,d7                   ; Move the value into a space used by the loop
+00000014  4EB9 00000038             41      jsr     InnerSetup
+0000001A  0491 00000010             42      subi.l  #DigitOffset,(a1)       ; As each digit gets printed, subtract out an offset and orientate origin
+00000020  4240                      43      clr.w   d0                      ; This digit is done, clear it it out
+00000022  4840                      44      swap    d0                      ; Swap in the remainder from the previous division
+00000024  21FC 00000030 0004        45      move.l  #StartingSegOffset,(DynamicSegmentOffset)   ; Reset the offset in the segmentWHTable to start looking at the top segment (G)
+0000002C  0C80 00000000             46      cmpi.l  #0,d0                   ; If the remainder was 0, the value is done being printed
+00000032  6700 0084                 47      beq     FinishedSubroutine
+00000036  60D4                      48      bra     OuterLoop
+00000038                            49     
+00000038                            50  InnerSetup
+00000038  48E7 FFFE                 51      movem.l AllRegisters,-(sp)      ; Save all original variables onto the stack
+0000003C  41F9 000000BA             52      lea     segmentTable,a0
+00000042                            53      
+00000042  1A30 7000                 54      move.b  (a0,d7),d5              ; This space has the binary representation of the 7-Segment LED
+00000046  1C05                      55      move.b  d5,d6                   ; Use this space as a place to loop and operations without destroying the binary segment representation
+00000048                            56  Loop
+00000048  0286 00000001             57      andi.l  #1,d6                   ; If 1, print the segment, otherwise shift the value out of the representation and check if done
+0000004E  6600 0006                 58      bne     DrawSegment
+00000052  6000 002A                 59      bra     ShiftValAndCheckForDone  
+00000056                            60  DrawSegment
+00000056  223C 00FFFFFF             61      move.l  #WhiteColor,d1          
+Line 62 ERROR: Undefined symbol
+0000005C  203C 004DBD16             62      move.l  #PenColorTrap,d0
+00000062  4E4F                      63      trap    #15                     ; Sets the pen color to white
+00000064  4281                      64      clr.l   d1
+00000066  41F9 000000C4             65      lea     segmentWHTable,a0
+0000006C  4EB9 0000008C             66      jsr     PopulateFromTable       ; Gets the line coordinates prepared for drawing
+Line 67 ERROR: Undefined symbol
+00000072  203C 004DBD16             67      move.l  #DrawLineTrap,d0       
+00000078  4E4F                      68      trap    #15                     ; Draw the line that's made through PopulateFromTable
+0000007A                            69      
+0000007A  6000 0002                 70      bra     ShiftValAndCheckForDone
+0000007E                            71  ShiftValAndCheckForDone
+0000007E  E20D                      72      lsr.b   #1,d5                                   ; Shift out the least significant bit
+00000080  6700 0030                 73      beq     DoneDigit                               ; If the representation is 0, done printing segments for that digit
+00000084  2C05                      74      move.l  d5,d6
+00000086  51B8 0004                 75      subi.l  #OffsetSubtract,DynamicSegmentOffset    ; Changes the offset value to read in the segmentWHTable
+0000008A  60BC                      76      bra     Loop
+0000008C                            77      
+0000008C                            78  PopulateFromTable
+0000008C  2038 0004                 79      move.l  (DynamicSegmentOffset),d0   ; The holds the offset for the current segment
+00000090  3230 0000                 80      move.w  (a0,d0),d1                  ; Get the beginning of the line's x value
+00000094  D2B8 0000                 81      add.l   (OriginOffset),d1
+00000098  5480                      82      addi.l  #NextWordOffset,d0          ; Shift the offset up to read the next word to get the next position
+0000009A  3430 0000                 83      move.w  (a0,d0),d2                  ; Get the beginning of the line's y value
+0000009E  5480                      84      addi.l  #NextWordOffset,d0          ; Shift the offset up to read the next word to get the next position
+000000A0  3630 0000                 85      move.w  (a0,d0),d3                  ; Get the end of the line's x value
+000000A4  D6B8 0000                 86      add.l   (OriginOffset),d3       
+000000A8  5480                      87      addi.l  #NextWordOffset,d0          ; Shift the offset up to read the next word to get the next position
+000000AA  3830 0000                 88      move.w  (a0,d0),d4                  ; Get the end of the line's y value
+000000AE  5480                      89      addi.l  #NextWordOffset,d0          ; Shift the offset up to read the next word to get the next position
+000000B0  4E75                      90      rts
+000000B2                            91  
+000000B2                            92  DoneDigit
+000000B2  4CDF 7FFF                 93      movem.l (sp)+,AllRegisters          ; Reset original registers and fix stack pointer
+000000B6  4E75                      94      rts                                 ; Go back to OuterLoop to check if digits are done printing
+000000B8                            95  FinishedSubroutine
+000000B8  4E75                      96      rts                                 ; All digits are printed, return back
+000000BA                            97  
+000000BA                            98                                          ;      ABC DEFG
+000000BA= 7E                        99  segmentTable            dc.b    $7E     ; 0 = 0111 1110
+000000BB= 30                       100                          dc.b    $30     ; 1 = 0011 0000
+000000BC= 6D                       101                          dc.b    $6D     ; 2 = 0110 1101
+000000BD= 79                       102                          dc.b    $79     ; 3 = 0111 1001
+000000BE= 33                       103                          dc.b    $33     ; 4 = 0011 0011
+000000BF= 5B                       104                          dc.b    $5B     ; 5 = 0101 1011
+000000C0= 5F                       105                          dc.b    $5F     ; 6 = 0101 1111
+000000C1= 70                       106                          dc.b    $70     ; 7 = 0111 0000
+000000C2= 7F                       107                          dc.b    $7F     ; 8 = 0111 1111
+000000C3= 7B                       108                          dc.b    $7B     ; 9 = 0111 1011
+000000C4                           109  
+000000C4= 0048 02D2 0052 02D2      110  segmentWHTable          dc.w    LEDEdgeLeft,LEDTopLeft,LEDEdgeRight,LEDTopRight     ; Top left to top right   (A)
+000000CC= 0052 02D2 0052 02DC      111                          dc.w    LEDEdgeRight,LEDTopRight,LEDEdgeRight,LEDMidRight   ; Top right to mid right  (B)
+000000D4= 0052 02DC 0052 02E6      112                          dc.w    LEDEdgeRight,LEDMidRight,LEDEdgeRight,LEDBotRight   ; Mid right top bot right (C)
+000000DC= 0048 02E6 0052 02E6      113                          dc.w    LEDEdgeLeft,LEDBotRight,LEDEdgeRight,LEDBotLeft     ; Bot right to bot left   (D)
+000000E4= 0048 02E6 0048 02DC      114                          dc.w    LEDEdgeLeft,LEDBotLeft,LEDEdgeLeft,LEDMidLeft       ; Bot left to mid left    (E)
+000000EC= 0048 02DC 0048 02D2      115                          dc.w    LEDEdgeLeft,LEDMidLeft,LEDEdgeLeft,LEDTopLeft       ; Mid left to top left    (F)
+000000F4= 0048 02DC 0052 02DC      116                          dc.w    LEDEdgeLeft,LEDMidLeft,LEDEdgeRight,LEDMidRight     ; Mid left to mid right   (G)
+000000FC                           117  
+000000FC                           118  
+000000FC                           119  
+000000FC                           120  
+Line 121 WARNING: END directive missing, starting address not set
+
+2 errors detected
+1 warning generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+ALLREGISTERS        7FFF
+DIGITOFFSET         10
+DIVIDEAMOUNT        A
+DONEDIGIT           B2
+DRAWSEGMENT         56
+DYNAMICSEGMENTOFFSET  4
+FINISHEDSUBROUTINE  B8
+INNERSETUP          38
+LEDBOTLEFT          2E6
+LEDBOTRIGHT         2E6
+LEDEDGELEFT         48
+LEDEDGERIGHT        52
+LEDMIDLEFT          2DC
+LEDMIDRIGHT         2DC
+LEDSCOREOFFSET      204
+LEDSEGMENTDISPLAY   8
+LEDTOPLEFT          2D2
+LEDTOPRIGHT         2D2
+LENGTHOFTABLES      30
+LOOP                48
+NEXTWORDOFFSET      2
+OFFSETSUBTRACT      8
+ORIGINOFFSET        0
+OUTERLOOP           C
+POPULATEFROMTABLE   8C
+SEGMENTTABLE        BA
+SEGMENTWHTABLE      C4
+SHIFTVALANDCHECKFORDONE  7E
+STARTINGSEGOFFSET   30
+WHITECOLOR          FFFFFF

@@ -1,0 +1,109 @@
+00001000 Starting Address
+Assembler used: EASy68K Editor/Assembler v5.16.01
+Created On: 10/1/2020 4:46:52 PM
+
+00000000                             1  *-----------------------------------------------------------
+00000000                             2  * Title      : Assembly Game
+00000000                             3  * Written by : Tony Giumenta
+00000000                             4  * Date       : 09/30/20
+00000000                             5  * Description: Input Setup
+00000000                             6  *-----------------------------------------------------------
+00000000                             7  InputRightSetup
+Line 8 ERROR: Undefined symbol
+00000000  123C 0016                  8      move.b  #KeyRightInput,d1       ; Get the value of the right arrow key
+00000004  E189                       9      lsl.l   #8,d1
+00000006  4E75                      10      rts
+00000008                            11      
+00000008                            12  InputLeftSetup
+Line 13 ERROR: Undefined symbol
+00000008  123C 0016                 13      move.b  #KeyLeftInput,d1        ; Get the value of the left arrow key
+0000000C  4E75                      14      rts
+0000000E                            15  
+0000000E                            16  InputHandlingAndBGReplace
+0000000E  4EB8 0000                 17      jsr     InputRightSetup
+00000012  4EB8 0008                 18      jsr     InputLeftSetup
+00000016                            19      
+Line 20 ERROR: Undefined symbol
+00000016  203C 004DBD16             20      move.l  #UserInputTrap,d0       ; Check for a button press of either the left/right key
+0000001C  4E4F                      21      trap    #15
+0000001E  0281 0000FFFF             22      andi.l  #$FFFF,d1              
+00000024  6700 007A                 23      beq     noInput                 ; If no keys are pressed, mark the boolean and return out without drawing
+00000028                            24      
+00000028                            25      *Check which key was actually pressed and branch to the specific method for the movement*
+00000028  0C81 000000FF             26      cmpi.l  #$FF,d1
+0000002E  6700 000C                 27      beq     LeftInput
+00000032  0C81 0000FF00             28      cmpi.l  #$FF00,d1
+00000038  6700 001A                 29      beq     RightInput
+0000003C                            30      
+0000003C                            31  LeftInput
+Line 32 ERROR: Undefined symbol
+0000003C  0492 004DBD16             32      subi.l  #CharVelocity,(a2)
+00000042  0C92 00000000             33      cmpi.l  #0, (a2)                ; If the paddle collides with the left of the window, set the left position to 0
+00000048  6F00 002E                 34      ble     SetLeftCollided
+0000004C                            35      
+Line 36 ERROR: Undefined symbol
+0000004C  4EB9 004DBD16             36      jsr     ReplaceBackgroundMoveLeft
+00000052  4E75                      37      rts
+00000054                            38      
+00000054                            39  RightInput
+Line 40 ERROR: Undefined symbol
+00000054  0692 004DBD16             40      addi.l  #CharVelocity,(a2)
+0000005A                            41      
+Line 42 ERROR: Undefined symbol
+0000005A  203C 004DBD16             42      move.l  #BGWidthDisplay, d0
+00000060  2212                      43      move.l  (a2),d1
+Line 44 ERROR: Undefined symbol
+00000062  EC89                      44      lsr.l   #LandShiftAmount,d1     ; Right shift the value so it is in 2^0
+Line 45 ERROR: Undefined symbol
+00000064  0681 004DBD16             45      addi.l  #WidthDisplay,d1        ; Add paddle with to the left side
+0000006A  B280                      46      cmp.l   d0,d1
+0000006C  6C00 0018                 47      bge     SetRightCollided
+00000070                            48      
+Line 49 ERROR: Undefined symbol
+00000070  4EB9 004DBD16             49      jsr     ReplaceBackgroundMoveRight
+00000076  4E75                      50      rts
+00000078                            51      
+00000078                            52  SetLeftCollided
+00000078  24BC 00000000             53      move.l  #0, (a2)
+Line 54 ERROR: Undefined symbol
+0000007E  4EB9 004DBD16             54      jsr     ReplaceBackgroundMoveLeft
+00000084  4E75                      55      rts
+00000086                            56      
+00000086                            57  SetRightCollided
+Line 58 ERROR: Undefined symbol
+00000086  223C 004DBD16             58      move.l  #BGWidthDisplay,d1
+Line 59 ERROR: Undefined symbol
+0000008C  0481 004DBD16             59      subi.l  #WidthDisplay,d1       ; Subtract width of paddle
+Line 60 ERROR: Undefined symbol
+00000092  ED89                      60      lsl.l   #LandShiftAmount,d1
+00000094  2481                      61      move.l  d1,(a2)                ; Move that value into the left position of the paddle
+00000096  2281                      62      move.l  d1,(a1)
+Line 63 ERROR: Undefined symbol
+00000098  4EB9 004DBD16             63      jsr     ReplaceBackgroundMoveLeft
+0000009E  4E75                      64      rts
+000000A0                            65          
+000000A0                            66      
+000000A0                            67  noInput
+Line 68 ERROR: Undefined symbol
+000000A0  13FC 0001 005455B8        68      move.b  #1,HaveHadNoInput
+000000A8  4E75                      69      rts
+000000AA                            70  
+000000AA                            71  
+000000AA                            72  
+Line 73 WARNING: END directive missing, starting address not set
+
+16 errors detected
+1 warning generated
+
+
+SYMBOL TABLE INFORMATION
+Symbol-name         Value
+-------------------------
+INPUTHANDLINGANDBGREPLACE  E
+INPUTLEFTSETUP      8
+INPUTRIGHTSETUP     0
+LEFTINPUT           3C
+NOINPUT             A0
+RIGHTINPUT          54
+SETLEFTCOLLIDED     78
+SETRIGHTCOLLIDED    86
