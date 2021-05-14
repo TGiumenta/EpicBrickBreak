@@ -3,7 +3,7 @@
 ## Installation
 Install the Easy68k IDE here: http://www.easy68k.com/ \
 Once installed, navigate to the base folder and open main.x68. \
-Navigate to the toolbar and click Project -> Assemble Source, or just press F9 on the keyboard! \
+Navigate to the toolbar and click Project -> Assemble Source, or just press F9 on the keyboard!
 
 ## Game Goals
 Obtain as many points as possible by hitting bricks with the ball by moving the paddle. \
